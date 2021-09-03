@@ -1,5 +1,5 @@
-github.com/58kg/router v1.0.0 h1:YQzLwcg3Sw51e7sHBwei1psJDXFGzK/EeKLFvUDy/vo=
-github.com/58kg/router v1.0.0/go.mod h1:dV+x6YCYdsDFLqahlQTWbFnlctFG/OS7nbd21iaR6+Q=
+github.com/58kg/router v1.0.2 h1:Yb68BwSwgCpWmw6yFPkfDOscdChDLL98peJGxjSHD3Q=
+github.com/58kg/router v1.0.2/go.mod h1:dV+x6YCYdsDFLqahlQTWbFnlctFG/OS7nbd21iaR6+Q=
 github.com/58kg/tree_render v1.0.3 h1:1DEhi2ONWNab26/VGCQpDUg8zdX8pkyuuRTOMzmb2gw=
 github.com/58kg/tree_render v1.0.3/go.mod h1:rcrp1jc6DSL/NIAHp0nSVHSQrpTx3lCZ6Rsfaj6EFkY=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 h1:EGx4pi6eqNxGaHF6qqu48+N2wcFQ5qg5FXgOdqsJ5d8=
