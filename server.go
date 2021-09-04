@@ -60,7 +60,7 @@ func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	logId := logs.GenLogId()
 	req = req.WithContext(logs.CtxWithLogId(req.Context(), logId))
 	defer func() {
-		resp.Header().Set(logs.LogIdContextKey, logId)
+		resp.Header().Set(string(logs.LogIdContextKey), logId)
 		logs.CtxTrace(req.Context(), "Resp, [Header]=%v", to_string.String(resp.Header()))
 	}()
 
