@@ -58,7 +58,7 @@ func (e *engine) RunByHttps(port int, certFile, keyFile string) error {
 
 func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	logId := logs.GenLogId()
-	req.WithContext(logs.CtxWithLogId(req.Context(), logId))
+	req = req.WithContext(logs.CtxWithLogId(req.Context(), logId))
 	defer func() {
 		resp.Header().Set(logs.LogIdContextKey, logId)
 		logs.CtxTrace(req.Context(), "Resp, [Header]=%v", to_string.String(resp.Header()))
