@@ -3,12 +3,13 @@ package easyserver
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"runtime/debug"
 	"sort"
 	"strings"
 
+	"github.com/58kg/logs"
 	"github.com/58kg/router"
+	"github.com/58kg/to_string"
 )
 
 type Engine interface {
@@ -56,6 +57,17 @@ func (e *engine) RunByHttps(port int, certFile, keyFile string) error {
 }
 
 func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	logId := logs.GenLogId()
+	req.WithContext(logs.CtxWithLogId(req.Context(), logId))
+	defer func() {
+		resp.Header().Set(logs.LogIdContextKey, logId)
+		logs.CtxTrace(req.Context(), "Resp, [Header]=%v", to_string.String(resp.Header()))
+	}()
+
+	logs.CtxTrace(req.Context(), "Req, [Method]=%v, [URL]=%v, [Header]=%v, [Host]=%v, [Form]=%v, [PostForm]=%v, [MultipartForm]=%v, [Trailer]=%v, [RemoteAddr]=%v, [RequestURI]=%v",
+		req.Method, to_string.String(req.URL), to_string.String(req.Header), req.Host, to_string.String(req.Form), to_string.String(req.PostForm),
+		to_string.String(req.MultipartForm), to_string.String(req.Trailer), req.RemoteAddr, req.RequestURI)
+
 	methodRegister := false
 	for _, v := range e.allowedMethods.s {
 		if v == req.Method {
@@ -79,7 +91,7 @@ func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	if handler != nil {
 		defer func() {
 			if err := recover(); err != nil {
-				fmt.Fprintf(os.Stderr, "[panic] err=%v, stack:\n%s", err, debug.Stack())
+				logs.CtxCritical(req.Context(), "[panic] err=%v, stack:\n%s", err, debug.Stack())
 			}
 		}()
 		(&engineContext{
