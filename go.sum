@@ -1,11 +1,11 @@
 github.com/58kg/logs v1.0.4 h1:2O2rUCE8ydugohdw9hRlDom2ccSCBiGtrr/hV7vr1Kw=
 github.com/58kg/logs v1.0.4/go.mod h1:LYvN8hT2SLOBxiSeWswUdS2lXaWkxaL7itY0+VP/Fd0=
-github.com/58kg/router v1.0.2 h1:Yb68BwSwgCpWmw6yFPkfDOscdChDLL98peJGxjSHD3Q=
-github.com/58kg/router v1.0.2/go.mod h1:dV+x6YCYdsDFLqahlQTWbFnlctFG/OS7nbd21iaR6+Q=
-github.com/58kg/to_string v1.0.3 h1:FT+LlUe9WHzxDQlTKsKDgdICrkyfbPAf2uSnrXjEO34=
-github.com/58kg/to_string v1.0.3/go.mod h1:jPn7HuCsq3AFm0uwzm88DehLH7EJaOHk6aWVlxi070c=
-github.com/58kg/tree_render v1.0.3 h1:1DEhi2ONWNab26/VGCQpDUg8zdX8pkyuuRTOMzmb2gw=
-github.com/58kg/tree_render v1.0.3/go.mod h1:rcrp1jc6DSL/NIAHp0nSVHSQrpTx3lCZ6Rsfaj6EFkY=
+github.com/58kg/router v0.0.0-20210905104241-8f167670fa2f h1:xI7sA7j7yHVYvU0V/yLEwxVOndl/jKOnGmlF4TxqfOw=
+github.com/58kg/router v0.0.0-20210905104241-8f167670fa2f/go.mod h1://CzR94sPUSesxHeSc0X/DeIsFXK5OaJBflZyct2sho=
+github.com/58kg/tostr v0.0.0-20210905123355-b9f5539e95b4 h1:qfeMgK2+z1rpTNdhTEkgIX/W85v4J6DBJ7u9k/dvFYY=
+github.com/58kg/tostr v0.0.0-20210905123355-b9f5539e95b4/go.mod h1:IgawRa+V5phNqAgWenIeq/VVC5dL+pLLrVxr4fbJfbg=
+github.com/58kg/treeprint v0.0.0-20210905101954-07ce07aa55f9 h1:sWA2iJl3aakCaCtx5PfpoES6b+MyGr++Vec/3+gDv6Y=
+github.com/58kg/treeprint v0.0.0-20210905101954-07ce07aa55f9/go.mod h1:E0I+h96ZqpUtSmSSIk2sXuDHVj5UWfAE/vsR9HtYuqg=
 github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575 h1:kHaBemcxl8o/pQ5VM1c8PVE1PubbNx3mjUr09OqWGCs=
 github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575/go.mod h1:9d6lWj8KzO/fd/NrVaLscBKmPigpZpn5YawRPw+e3Yo=
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 h1:EGx4pi6eqNxGaHF6qqu48+N2wcFQ5qg5FXgOdqsJ5d8=

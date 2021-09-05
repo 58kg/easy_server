@@ -9,19 +9,35 @@ import (
 
 	"github.com/58kg/logs"
 	"github.com/58kg/router"
-	"github.com/58kg/to_string"
+	"github.com/58kg/tostr"
 )
 
+type Group struct {
+	Method    string
+	RootPath  string
+	Middwares []func(c Context)
+	Children  []Node
+}
+
+type Node struct {
+	Method    string
+	Path      string
+	Middwares []func(c Context)
+	Handler   func(c Context)
+}
+
 type Engine interface {
-	Register(method, path string, handle router.Handler)
-	AppendMiddleware(handler func(c Context))
-	RunByHttps(port int, certFile, keyFile string) error
+	Register(node Node)
+	RegisterGroup(group Group)
+	RunHttp(port int) error
+	RunHttps(port int, certFile, keyFile string) error
 }
 
 type Context interface {
 	GetReq() *http.Request
 	GetResp() http.ResponseWriter
 	GetParamParam() []router.UrlParam
+	GetMatchPath() string
 	Next() bool
 }
 
@@ -33,26 +49,56 @@ func New() Engine {
 
 type engine struct {
 	r              router.Router
-	middlewares    *middleware
 	allowedMethods struct {
 		s   []string
 		str string
 	}
 }
 
-func (e *engine) Register(method, path string, handle router.Handler) {
-	e.r.Register(method, path, handle)
+type routerValue struct {
+	middwares []func(c Context)
+	matchPath string
+}
+
+func (e *engine) Register(node Node) {
+	node.Middwares = append(node.Middwares, node.Handler)
+	for _, v := range node.Middwares {
+		if v == nil {
+			panic("middleware or handle of a node is nil")
+		}
+	}
+
+	e.r.Register(node.Method, node.Path, &routerValue{
+		middwares: node.Middwares,
+		matchPath: node.Path,
+	})
 	for _, v := range e.allowedMethods.s {
-		if v == method {
+		if v == node.Method {
 			return
 		}
 	}
-	e.allowedMethods.s = append(e.allowedMethods.s, method)
+	e.allowedMethods.s = append(e.allowedMethods.s, node.Method)
 	sort.Strings(e.allowedMethods.s)
 	e.allowedMethods.str = strings.Join(e.allowedMethods.s, ",")
 }
 
-func (e *engine) RunByHttps(port int, certFile, keyFile string) error {
+func (e *engine) RegisterGroup(group Group) {
+	for _, v := range group.Children {
+		if v.Method != "" && v.Method != group.Method {
+			panic("children method is different with group")
+		}
+		v.Method = group.Method
+		v.Middwares = append(group.Middwares, v.Middwares...)
+		v.Path = group.RootPath + v.Path
+		e.Register(v)
+	}
+}
+
+func (e *engine) RunHttp(port int) error {
+	return http.ListenAndServe(":"+fmt.Sprintf("%d", port), e)
+}
+
+func (e *engine) RunHttps(port int, certFile, keyFile string) error {
 	return http.ListenAndServeTLS(":"+fmt.Sprintf("%d", port), certFile, keyFile, e)
 }
 
@@ -61,12 +107,64 @@ func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	req = req.WithContext(logs.CtxWithLogId(req.Context(), logId))
 	defer func() {
 		resp.Header().Set(string(logs.LogIdContextKey), logId)
-		logs.CtxTrace(req.Context(), "Resp, [Header]=%v", to_string.String(resp.Header()))
+		logs.CtxTrace(req.Context(), "Resp=%v", tostr.String(&struct {
+			StatusCode       interface{}
+			Status           interface{}
+			Proto            interface{}
+			ProtoMajor       interface{}
+			ProtoMinor       interface{}
+			Header           interface{}
+			ContentLength    interface{}
+			TransferEncoding interface{}
+			Uncompressed     interface{}
+			Trailer          interface{}
+		}{
+			StatusCode:       req.Response.StatusCode,
+			Status:           req.Response.Status,
+			Proto:            req.Response.Proto,
+			ProtoMajor:       req.Response.ProtoMajor,
+			ProtoMinor:       req.Response.ProtoMinor,
+			Header:           req.Response.Header,
+			ContentLength:    req.Response.ContentLength,
+			TransferEncoding: req.Response.TransferEncoding,
+			Uncompressed:     req.Response.Uncompressed,
+			Trailer:          req.Response.Trailer,
+		}))
 	}()
 
-	logs.CtxTrace(req.Context(), "Req, [Method]=%v, [URL]=%v, [Header]=%v, [Host]=%v, [Form]=%v, [PostForm]=%v, [MultipartForm]=%v, [Trailer]=%v, [RemoteAddr]=%v, [RequestURI]=%v",
-		req.Method, to_string.String(req.URL), to_string.String(req.Header), req.Host, to_string.String(req.Form), to_string.String(req.PostForm),
-		to_string.String(req.MultipartForm), to_string.String(req.Trailer), req.RemoteAddr, req.RequestURI)
+	logs.CtxTrace(req.Context(), "Req=%v", tostr.String(&struct {
+		Method           interface{}
+		URL              interface{}
+		Proto            interface{}
+		ProtoMajor       interface{}
+		ProtoMinor       interface{}
+		Header           interface{}
+		Host             interface{}
+		Form             interface{}
+		PostForm         interface{}
+		MultipartForm    interface{}
+		Trailer          interface{}
+		RemoteAddr       interface{}
+		RequestURI       interface{}
+		ContentLength    interface{}
+		TransferEncoding interface{}
+	}{
+		Method:           req.Method,
+		URL:              req.URL,
+		Proto:            req.Proto,
+		ProtoMajor:       req.ProtoMajor,
+		ProtoMinor:       req.ProtoMinor,
+		Header:           req.Header,
+		Host:             req.Host,
+		Form:             req.Form,
+		PostForm:         req.PostForm,
+		MultipartForm:    req.MultipartForm,
+		Trailer:          req.Trailer,
+		RemoteAddr:       req.RemoteAddr,
+		RequestURI:       req.RequestURI,
+		ContentLength:    req.ContentLength,
+		TransferEncoding: req.TransferEncoding,
+	}))
 
 	methodRegister := false
 	for _, v := range e.allowedMethods.s {
@@ -87,25 +185,25 @@ func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	handler, urlParams, tsr := e.r.GetHandler(req.Method, req.URL.Path)
-	if handler != nil {
+	value, urlParams, redirect := e.r.Lookup(req.Method, req.URL.Path)
+	if value != nil {
+		h := value.(*routerValue)
 		defer func() {
 			if err := recover(); err != nil {
-				logs.CtxCritical(req.Context(), "[panic] err=%v, stack:\n%s", err, debug.Stack())
+				logs.CtxCritical(req.Context(), "panic in handler, err=%v, stack=\n%s", err, debug.Stack())
 			}
 		}()
-		(&engineContext{
+		(&reqContext{
 			req:       req,
 			resp:      resp,
 			pathParam: urlParams,
-			engine:    e,
-			handler:   handler,
-			curMW:     e.middlewares,
+			middwares: h.middwares,
+			matchPath: h.matchPath,
 		}).Next()
 		return
 	}
 
-	if !tsr {
+	if !redirect {
 		http.NotFound(resp, req)
 		return
 	}
@@ -116,54 +214,39 @@ func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		req.URL.Path += "/"
 	}
 	http.Redirect(resp, req, req.URL.String(), http.StatusPermanentRedirect)
-	return
 }
 
-type middleware struct {
-	handler func(c Context)
-	next    *middleware
-}
-
-func (e *engine) AppendMiddleware(handler func(c Context)) {
-	if e.middlewares == nil {
-		e.middlewares = &middleware{handler: handler}
-		return
-	}
-	mw := e.middlewares
-	for mw.next != nil {
-		mw = mw.next
-	}
-	mw.next = &middleware{handler: handler}
-}
-
-type engineContext struct {
+type reqContext struct {
 	req       *http.Request
 	resp      http.ResponseWriter
 	pathParam []router.UrlParam
-	engine    *engine
-	handler   router.Handler
-	curMW     *middleware
+	middwares []func(c Context)
+	curMW     int
+	matchPath string
 }
 
-func (c *engineContext) GetReq() *http.Request {
+func (c *reqContext) GetReq() *http.Request {
 	return c.req
 }
 
-func (c *engineContext) GetResp() http.ResponseWriter {
+func (c *reqContext) GetResp() http.ResponseWriter {
 	return c.resp
 }
 
-func (c *engineContext) GetParamParam() []router.UrlParam {
+func (c *reqContext) GetParamParam() []router.UrlParam {
 	return c.pathParam
 }
 
-// 返回true表示当存在下一个中间件
-func (c *engineContext) Next() bool {
-	if c.curMW == nil {
-		c.handler(c.GetResp(), c.GetReq(), c.GetParamParam())
+func (c *reqContext) GetMatchPath() string {
+	return c.matchPath
+}
+
+// 返回true表示存在下一个中间件
+func (c *reqContext) Next() bool {
+	if c.curMW >= len(c.middwares) {
 		return false
 	}
-	c.curMW.handler(c)
-	c.curMW = c.curMW.next
+	c.middwares[c.curMW](c)
+	c.curMW++
 	return true
 }
