@@ -1,9 +1,9 @@
-github.com/58kg/logs v0.0.0-20210905143925-fa2b5672a2fa h1:x1XfPNwh76IYrh59P8chJ0A8GGxzas17RcwVp0d6iYk=
-github.com/58kg/logs v0.0.0-20210905143925-fa2b5672a2fa/go.mod h1:LYvN8hT2SLOBxiSeWswUdS2lXaWkxaL7itY0+VP/Fd0=
+github.com/58kg/logs v0.0.0-20210919144247-4afdcda4f960 h1:oNyDugFiERri7vhr/P9S9fTIb70/2XMBaWPSJfGGCnM=
+github.com/58kg/logs v0.0.0-20210919144247-4afdcda4f960/go.mod h1:LYvN8hT2SLOBxiSeWswUdS2lXaWkxaL7itY0+VP/Fd0=
 github.com/58kg/router v0.0.0-20210905104241-8f167670fa2f h1:xI7sA7j7yHVYvU0V/yLEwxVOndl/jKOnGmlF4TxqfOw=
 github.com/58kg/router v0.0.0-20210905104241-8f167670fa2f/go.mod h1://CzR94sPUSesxHeSc0X/DeIsFXK5OaJBflZyct2sho=
-github.com/58kg/tostr v0.0.0-20210905123355-b9f5539e95b4 h1:qfeMgK2+z1rpTNdhTEkgIX/W85v4J6DBJ7u9k/dvFYY=
-github.com/58kg/tostr v0.0.0-20210905123355-b9f5539e95b4/go.mod h1:IgawRa+V5phNqAgWenIeq/VVC5dL+pLLrVxr4fbJfbg=
+github.com/58kg/tostr v0.0.0-20210919133647-5bf142b94bc4 h1:i6rjydJ9D3BgG6QaqK2NyDkk+N/HWrBAsZh/OKVv3Lo=
+github.com/58kg/tostr v0.0.0-20210919133647-5bf142b94bc4/go.mod h1:IgawRa+V5phNqAgWenIeq/VVC5dL+pLLrVxr4fbJfbg=
 github.com/58kg/treeprint v0.0.0-20210905101954-07ce07aa55f9 h1:sWA2iJl3aakCaCtx5PfpoES6b+MyGr++Vec/3+gDv6Y=
 github.com/58kg/treeprint v0.0.0-20210905101954-07ce07aa55f9/go.mod h1:E0I+h96ZqpUtSmSSIk2sXuDHVj5UWfAE/vsR9HtYuqg=
 github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575 h1:kHaBemcxl8o/pQ5VM1c8PVE1PubbNx3mjUr09OqWGCs=
