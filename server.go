@@ -13,16 +13,16 @@ import (
 )
 
 type Group struct {
-	RootPath  string
-	Middwares []func(c Context)
-	Children  []Node
+	RootPath    string
+	Middlewares []func(c Context)
+	Children    []Node
 }
 
 type Node struct {
-	Method    string
-	Path      string
-	Middwares []func(c Context)
-	Handler   func(c Context)
+	Method      string
+	Path        string
+	Middlewares []func(c Context)
+	Handler     func(c Context)
 }
 
 type Engine interface {
@@ -55,21 +55,21 @@ type engine struct {
 }
 
 type routerValue struct {
-	middwares []func(c Context)
-	matchPath string
+	middlewares []func(c Context)
+	matchPath   string
 }
 
 func (e *engine) Register(node Node) {
-	node.Middwares = append(node.Middwares, node.Handler)
-	for _, v := range node.Middwares {
+	node.Middlewares = append(node.Middlewares, node.Handler)
+	for _, v := range node.Middlewares {
 		if v == nil {
 			panic("middleware or handle of a node is nil")
 		}
 	}
 
 	e.r.Register(node.Method, node.Path, &routerValue{
-		middwares: node.Middwares,
-		matchPath: node.Path,
+		middlewares: node.Middlewares,
+		matchPath:   node.Path,
 	})
 	for _, v := range e.allowedMethods.s {
 		if v == node.Method {
@@ -83,7 +83,7 @@ func (e *engine) Register(node Node) {
 
 func (e *engine) RegisterGroup(group Group) {
 	for _, v := range group.Children {
-		v.Middwares = append(group.Middwares, v.Middwares...)
+		v.Middlewares = append(group.Middlewares, v.Middlewares...)
 		v.Path = group.RootPath + v.Path
 		e.Register(v)
 	}
@@ -170,12 +170,13 @@ func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 				logs.CtxCritical(req.Context(), "panic in handler, err=%v, stack=\n%s", err, debug.Stack())
 			}
 		}()
+		logs.CtxTrace(req.Context(), "[mathPath]=%v, [pathParam]=%v", tostr.String(h.matchPath), tostr.String(urlParams))
 		(&reqContext{
-			req:       req,
-			resp:      resp,
-			pathParam: urlParams,
-			middwares: h.middwares,
-			matchPath: h.matchPath,
+			req:         req,
+			resp:        resp,
+			pathParam:   urlParams,
+			middlewares: h.middlewares,
+			matchPath:   h.matchPath,
 		}).Next()
 		return
 	}
@@ -194,12 +195,12 @@ func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 type reqContext struct {
-	req       *http.Request
-	resp      http.ResponseWriter
-	pathParam []router.UrlParam
-	middwares []func(c Context)
-	curMW     int
-	matchPath string
+	req         *http.Request
+	resp        http.ResponseWriter
+	pathParam   []router.UrlParam
+	middlewares []func(c Context)
+	curMW       int
+	matchPath   string
 }
 
 func (c *reqContext) GetReq() *http.Request {
@@ -220,10 +221,10 @@ func (c *reqContext) GetMatchPath() string {
 
 // 返回true表示存在下一个中间件
 func (c *reqContext) Next() bool {
-	if c.curMW >= len(c.middwares) {
+	if c.curMW >= len(c.middlewares) {
 		return false
 	}
 	c.curMW++
-	c.middwares[c.curMW-1](c)
+	c.middlewares[c.curMW-1](c)
 	return true
 }
