@@ -102,14 +102,14 @@ func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	req = req.WithContext(logs.CtxWithLogId(req.Context(), logId))
 	defer func() {
 		resp.Header().Set(string(logs.LogIdContextKey), logId)
-		logs.CtxTrace(req.Context(), "Resp=%v", tostr.String(&struct {
+		logs.CtxTrace(req.Context(), "[EasyServer] Resp=%v", tostr.String(&struct {
 			Header interface{}
 		}{
 			Header: resp.Header(),
 		}))
 	}()
 
-	logs.CtxTrace(req.Context(), "Req=%v", tostr.String(&struct {
+	logs.CtxTrace(req.Context(), "[EasyServer] Req=%v", tostr.String(&struct {
 		Method           interface{}
 		URL              interface{}
 		Proto            interface{}
@@ -157,7 +157,7 @@ func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	if req.URL.Path == "" {
-		req.URL.Path = "/index"
+		req.URL.Path = "/"
 		http.Redirect(resp, req, req.URL.String(), http.StatusPermanentRedirect)
 		return
 	}
@@ -167,10 +167,10 @@ func (e *engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		h := value.(*routerValue)
 		defer func() {
 			if err := recover(); err != nil {
-				logs.CtxCritical(req.Context(), "panic in handler, err=%v, stack=\n%s", err, debug.Stack())
+				logs.CtxCritical(req.Context(), "[EasyServer] panic in handler, err=%v, stack=\n%s", err, debug.Stack())
 			}
 		}()
-		logs.CtxTrace(req.Context(), "[mathPath]=%v, [pathParam]=%v", tostr.String(h.matchPath), tostr.String(urlParams))
+		logs.CtxTrace(req.Context(), "[EasyServer] mathPath=%v, pathParam=%v", tostr.String(h.matchPath), tostr.String(urlParams))
 		(&reqContext{
 			req:         req,
 			resp:        resp,
